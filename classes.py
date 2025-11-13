@@ -41,8 +41,19 @@ class Vehicule:
             for i in range(0, self.length):
                 occupiedPixels.append((self.position[0]+i, self.position[1]))   
         return occupiedPixels
+    
+    def vehiculeToRect(self, board, margin = 5):
+        print(f'board: {board} / board.x = {board.x} / board.y = {board.y}')
+        if self.orientation == 'horizontal':
+            rect = pg.Rect(board.x + self.position[1]*100 + (self.position[1] + 1)*margin, board.y + self.position[0]*100 + (self.position[0] + 1)*margin, self.length*100,100)
+        elif self.orientation == 'vertical':
+            rect = pg.Rect(board.x + self.position[1]*100 + (self.position[1] + 1)*margin, board.y + self.position[0]*100 + (self.position[0] + 1)*margin, 100, self.length*100)
+        else:
+            print(f'Vehicule has broken orientation')
+        print('vehiculeToRect executed !')
+        return rect
 
-    def moveVehiculeByCoords(self, move):
+    def moveVehiculeByMove(self, move):
         self.position[0] += move[0]
         self.position[1] += move[1]
 
@@ -86,12 +97,17 @@ class Vehicule:
             print('Vehicule has broken Orientation !')
 
 class Grid:
-    def __init__(self, redCar, obstacles):
+    def __init__(self, redCar, obstacles, margin = 5):
         self.redCar = redCar
         self.obstacles = obstacles
         self.matrix = gridToMatrixDrawer(self)
         self.parent = None
         self.objectiveValue = None
+        self.rectRedCar = None
+        self.rectObstacles = []
+        # Board rectangle
+        self.margin = margin
+        self.board = pg.Rect(100,100, 600 + 7*margin, 600 + 7*margin)
 
     def setParent(self, parent):
         self.parent = parent
@@ -167,6 +183,83 @@ class Grid:
         else:
             print('Vehicule has Broken orientation')
             return None
+        
+    def allowedVehiculeMove(self, vhc, direction, step):
+        max_steps = self.spaceAroundVehicule(vhc)
+        if direction == 'up' or  direction == 'left':
+            if step <= max_steps[1]:
+                return True
+            else:
+                print('conflictual Move ...')
+                return False
+        elif direction == 'down' or  direction == 'right':
+            if step <= max_steps[2]:
+                return True
+            else:
+                print('conflictual Move ...')
+                return False
+    
+    def moveMyVehicule(self, selected, direction, step=1):
+
+        if selected == 'redCar':
+            if self.allowedVehiculeMove(self.redCar, direction, step):
+                self.redCar.moveVehicule(direction, step)
+                self.rectRedCar = self.redCar.vehiculeToRect(self.board, self.margin)
+        else:
+            if self.allowedVehiculeMove(self.obstacles[selected], direction, step):
+                self.obstacles[selected].moveVehicule(direction, step)
+                self.rectObstacles[selected] = self.obstacles[selected].vehiculeToRect(self.board, self.margin)
+        self.gridToMatrixDrawer()
+
+    
+    def gridToRects(self, board= None, margin = 5):
+        if not board:
+            board = self.board
+        self.rectRedCar = self.redCar.vehiculeToRect(board, margin)
+        for obstacle in self.obstacles:
+            rectObstacle = obstacle.vehiculeToRect(board, margin)
+            self.rectObstacles.append(rectObstacle)
+        if len(self.rectObstacles) == len (self.obstacles):
+            print('Dimensions are matching !')
+        else:
+            print('Dimensions error !')
+    
+    def updateGrid(self):
+        self.gridToMatrixDrawer()
+        self.gridToRects()     
+    
+    def selectVehicule(self, pos):
+        selected = 'redCar'
+        if self.rectRedCar.collidepoint(pos):
+                selected = 'redCar'
+        else:
+            for i, obstacle in enumerate(self.rectObstacles):
+                if obstacle.collidepoint(pos):
+                    selected = i
+                    break
+        return selected
+    
+    def drawGridBoard(self, screen, colors, selected):
+        screen.fill(colors['BG'])
+    
+        # Main Board
+        pg.draw.rect(screen, colors['BOARD_COLOR'], self.board, border_radius = 10)
+
+        # Red car
+        pg.draw.rect(screen, colors['RED'], self.rectRedCar, border_radius = 10)
+
+        # Obstacles
+        if selected == 'redCar':
+            for rect in self.rectObstacles:
+                pg.draw.rect(screen, colors['BLOCK_COLOR'], rect, border_radius = 10)
+        else:
+            for i, rect in enumerate(self.rectObstacles):
+                if i == selected:
+                    pg.draw.rect(screen, colors['GREEN'], rect, border_radius = 10)
+                else:
+                    pg.draw.rect(screen, colors['BLOCK_COLOR'], rect, border_radius = 10)
+        pg.display.flip()
+    
 
     def makeChildsFromVehicule(self, vhc, idx = None):
         children = []

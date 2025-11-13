@@ -48,19 +48,19 @@ def gridsToMove(grid1, grid2):
         print(f'No move to make !')
         return None
 
-def moveVehiculeByCoords(vehicule, move):
-    vehicule.position[0] += move[0]
-    vehicule.position[1] += move[1]
+def moveVehiculeByMove(vehicule, move):
+    vehicule.position[0] += move[1]
+    vehicule.position[1] += move[2]
 
 def displayGame(solution, disRedCar, disSolution):
     actual = solution[0]
     for i in range(1, len(solution)):
         move = gridsToMove(actual, solution[i])
         if move[0] == 'redCar':
-            actual.redCar.moveVehiculeByCoords((move[1],move[2]))
+            actual.redCar.moveVehiculeByMove((move[1],move[2]))
             disRedCar.x += move[1]*100
             disRedCar.y += move[2]*100
         else:
-            actual.obstacles[i].moveVehiculeByCoords((move[1],move[2]))
+            actual.obstacles[i].moveVehiculeByMove((move[1],move[2]))
             disSolution[i].x += move[1]*100
             disSolution[i].y += move[2]*100  
