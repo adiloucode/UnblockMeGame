@@ -32,7 +32,7 @@ def generateVehicule():
 
     return Vehicule(orientation = orientation, position = position, length =length)    
 
-def gridRandomGenerator(difficulty = 'hard', nbrObs = None):
+def gridRandomGenerator(screen, difficulty = 'hard', nbrObs = None):
     if not nbrObs:
         nbrObs = defineNumberOfObstacles(difficulty)
     filledSpace = []
@@ -54,4 +54,4 @@ def gridRandomGenerator(difficulty = 'hard', nbrObs = None):
             for pixel in y:
                 filledSpace.append(pixel)
     print(f'generated {nbrObs} obstacle')
-    return Grid(redCar, obstacles)
+    return Grid(redCar, obstacles, screen)

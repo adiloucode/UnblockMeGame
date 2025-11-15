@@ -3,64 +3,68 @@ from IPython.display import clear_output
 from classes import *
 from integrityCheckers import *
 
+# To be added in Grid class
 def displayMatrixGrid(matrix):
     for row in matrix:
         print(' '.join(str(x) for x in row))
 
-def solvePuzzle(solution):  
+# Usefull
+def listOfMoves(solution):
     win = solution  
     finalMoves = deque()
     while solution.parent != None:
         finalMoves.appendleft(solution)
         solution = solution.parent
-    while finalMoves:
-        move = finalMoves.popleft()
-        displayMatrixGrid(move.matrix)
-        time.sleep(1)
-        clear_output(wait = True)
-    displayMatrixGrid(win.matrix)
+    finalMoves.appendleft(solution)
+    return finalMoves
 
-def gridToRects(grid, board = None, margin = 5):
-    if board:
-        x = board.x
-        y = board.y
-    else:
-        x = 100
-        y = 100
-
-    obstacles = []
-    for i, obstacle in enumerate(grid.obstacles):
-        if obstacle.orientation == 'horizontal':
-            obstacles.append(pg.Rect(x + obstacle.position[1]*100 + (obstacle.position[1] + 1)*margin, y + obstacle.position[0]*100 + (obstacle.position[0] + 1)*margin, obstacle.length*100,100))
-        elif obstacle.orientation == 'vertical':
-            obstacles.append(pg.Rect(x + obstacle.position[1]*100 + (obstacle.position[1] + 1)*margin, y + obstacle.position[0]*100 + (obstacle.position[0] + 1)*margin, 100, obstacle.length*100))
-        else:
-            print(f'Vehicule {i} has broken orientation')
-    return(obstacles)
-
-def gridsToMove(grid1, grid2):
+# To Be Rebranded
+def twoGridsToMove(grid1, grid2):
     if not compareVehicules(grid1.redCar, grid2.redCar):
-        return ('redCar',100 * (grid2.redCar.position[0] - grid1.redCar.position[0]), 100 * (grid2.redCar.position[1] - grid1.redCar.position[1]))
+        move = ('redCar', (grid2.redCar.position[0] - grid1.redCar.position[0]), (grid2.redCar.position[1] - grid1.redCar.position[1]))
+        if move[2] < 0:
+            return('redCar', 'left', (-1)*move[2])
+        elif move[2] > 0:
+            return('redCar', 'right', move[2])
+        else:
+            print('different redCar stats, but no move ?!')
     else:
         for i in range(len(grid1.obstacles)):
             if not compareVehicules(grid1.obstacles[i], grid2.obstacles[i]):
-                return (i, grid2.obstacles[i].position[0] - grid1.obstacles[i].position[0], grid2.obstacles[i].position[1] - grid1.obstacles[i].position[1])
-        print(f'No move to make !')
-        return None
+                move = (i, grid2.obstacles[i].position[0] - grid1.obstacles[i].position[0], grid2.obstacles[i].position[1] - grid1.obstacles[i].position[1])
+                # if compared vehicules are horizontal
+                if move[1] == 0:
+                    if move[2] < 0:
+                        return(i, 'left', (-1)*move[2])
+                    elif move[2] > 0:
+                            return(i, 'right', move[2])
+                    else:
+                            print(f'different {i}th obstacle stats, but no horizontal move ... one is horizontal')
+                # elif compared vehicules are vertical
+                elif move[2] == 0:
+                    if move[1] < 0:
+                        return(i, 'up', (-1)*move[1])
+                    elif move[1] > 0:
+                            return(i, 'down', move[1])
+                    else:
+                            print(f'different {i}th obstacle stats, but no horizontal move ... one is vertical')
+    print(f'No move to make !')
+    return None
 
-def moveVehiculeByMove(vehicule, move):
-    vehicule.position[0] += move[1]
-    vehicule.position[1] += move[2]
-
-def displayGame(solution, disRedCar, disSolution):
-    actual = solution[0]
-    for i in range(1, len(solution)):
-        move = gridsToMove(actual, solution[i])
-        if move[0] == 'redCar':
-            actual.redCar.moveVehiculeByMove((move[1],move[2]))
-            disRedCar.x += move[1]*100
-            disRedCar.y += move[2]*100
-        else:
-            actual.obstacles[i].moveVehiculeByMove((move[1],move[2]))
-            disSolution[i].x += move[1]*100
-            disSolution[i].y += move[2]*100  
+def display_AI_Solution(finalMoves, screen, colors):
+    actual = finalMoves.popleft()
+    win = finalMoves.pop()
+    while finalMoves:
+        next = finalMoves.popleft()
+        displayMatrixGrid(next.matrix)
+        vhcID, direction, step = twoGridsToMove(actual, next)
+        actual.moveMyVehicule(vhcID, direction, step)
+        #screen.fill(colors['BG'])
+        #actual.drawGridBoard(screen, colors)
+        #pg.display.flip()
+        if not compareGrids(actual, next):
+             print('error in move ?!')
+        time.sleep(1)
+        clear_output(wait = True)
+    displayMatrixGrid(win.matrix)
+    return True

@@ -14,6 +14,15 @@ def compareGrids(grid, grid2):
         return True
     else:
         return False
+    
+def gridInGridsList(grid, list1):
+    if list1:
+        for grid1 in list1:
+            if compareGrids(grid, grid1):
+                return True
+        return False
+    else:
+        print('empty list !')
 
 def movesInAllMoves(list1, list2):
     indicator = False

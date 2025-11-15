@@ -2,6 +2,7 @@ from collections import deque
 from classes import *
 from integrityCheckers import *
 from RandomGenerator import gridRandomGenerator
+from logicToDisplay import listOfMoves
 
 # Blind Search
 
@@ -15,7 +16,7 @@ def BFSsolver(rootGrid):
         print(f' visited so far:           {len(visited)}')
         if finalState(head):
             print('End of search, Puzzle solved !')
-            return(head)
+            return(listOfMoves(head))
         elif not movesInAllMoves([head], visited):
             visited.append(head)
             sons = head.allPossibleMoves()
@@ -37,9 +38,10 @@ def DFSsolver(rootGrid):
         head = queue.pop()
         print(f' visited so far:           {len(visited)}')
         if finalState(head):
+            print(f'{len(listOfMoves(head))}')
             print('End of search, Puzzle solved !')
-            return(head)
-        elif not movesInAllMoves([head], visited):
+            return(listOfMoves(head))
+        elif not gridInGridsList(head, visited):
             visited.append(head)
             sons = head.allPossibleMoves()
             for son in sons:
@@ -102,7 +104,7 @@ def Astar(rootGrid):
         print(f' visited so far:           {len(visited)}')
         if finalState(head):
             print('End of search, Puzzle solved !')
-            return(head)
+            return(listOfMoves(head))
         elif not movesInAllMoves([head], visited):
             visited.append(head)
             sons = head.allPossibleMoves()

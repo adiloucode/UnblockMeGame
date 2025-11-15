@@ -97,7 +97,7 @@ class Vehicule:
             print('Vehicule has broken Orientation !')
 
 class Grid:
-    def __init__(self, redCar, obstacles, margin = 5):
+    def __init__(self, redCar, obstacles, screen = None, margin = 5):
         self.redCar = redCar
         self.obstacles = obstacles
         self.matrix = gridToMatrixDrawer(self)
@@ -108,6 +108,11 @@ class Grid:
         # Board rectangle
         self.margin = margin
         self.board = pg.Rect(100,100, 600 + 7*margin, 600 + 7*margin)
+        if not screen:
+            # default screen
+            screen = pg.display.set_mode((800,800))
+        self.screen = screen
+        self.board.center = screen.get_rect().center
 
     def setParent(self, parent):
         self.parent = parent
@@ -207,6 +212,7 @@ class Grid:
                 self.rectRedCar = self.redCar.vehiculeToRect(self.board, self.margin)
         else:
             if self.allowedVehiculeMove(self.obstacles[selected], direction, step):
+                print(f'{len(self.obstacles)} ======== {self.rectObstacles}')
                 self.obstacles[selected].moveVehicule(direction, step)
                 self.rectObstacles[selected] = self.obstacles[selected].vehiculeToRect(self.board, self.margin)
         self.gridToMatrixDrawer()
@@ -239,9 +245,8 @@ class Grid:
                     break
         return selected
     
-    def drawGridBoard(self, screen, colors, selected):
-        screen.fill(colors['BG'])
-    
+    def drawGridBoard(self, screen, colors, selected = 'redCar'):
+        
         # Main Board
         pg.draw.rect(screen, colors['BOARD_COLOR'], self.board, border_radius = 10)
 
@@ -258,7 +263,6 @@ class Grid:
                     pg.draw.rect(screen, colors['GREEN'], rect, border_radius = 10)
                 else:
                     pg.draw.rect(screen, colors['BLOCK_COLOR'], rect, border_radius = 10)
-        pg.display.flip()
     
 
     def makeChildsFromVehicule(self, vhc, idx = None):
@@ -269,43 +273,43 @@ class Grid:
                 vhc2 = Vehicule(vhc.position, vhc.orientation, vhc.length)
                 vhc2.moveVehicule('left', i+1)
                 if idx == None:
-                    children.append(Grid(vhc2, self.obstacles))
+                    children.append(Grid(vhc2, self.obstacles, self.screen))
                 else:
                     obstacles2 = copy.deepcopy(self.obstacles)
                     obstacles2[idx] = vhc2
-                    children.append(Grid(self.redCar,obstacles2))
+                    children.append(Grid(self.redCar,obstacles2, self.screen))
                 vhc2 = None
 
             for i in range(after):
                 vhc2 = Vehicule(vhc.position, vhc.orientation, vhc.length)
                 vhc2.moveVehicule('right', i+1)
                 if idx == None:
-                    children.append(Grid(vhc2, self.obstacles))
+                    children.append(Grid(vhc2, self.obstacles, self.screen))
                 else:
                     obstacles2 = copy.deepcopy(self.obstacles)
                     obstacles2[idx] = vhc2
-                    children.append(Grid(self.redCar,obstacles2))
+                    children.append(Grid(self.redCar,obstacles2, self.screen))
                 vhc2 = None
         elif orientation == 'vertical':
             for i in range(before):
                 vhc2 = Vehicule(vhc.position, vhc.orientation, vhc.length)
                 vhc2.moveVehicule('up', i+1)
                 if idx == None:
-                    children.append(Grid(vhc2, self.obstacles))
+                    children.append(Grid(vhc2, self.obstacles, self.screen))
                 else:
                     obstacles2 = copy.deepcopy(self.obstacles)
                     obstacles2[idx] = vhc2
-                    children.append(Grid(self.redCar,obstacles2))
+                    children.append(Grid(self.redCar,obstacles2, self.screen))
                 vhc2 = None
             for i in range(after):
                 vhc2 = Vehicule(vhc.position, vhc.orientation, vhc.length)
                 vhc2.moveVehicule('down', i+1)
                 if idx == None:
-                    children.append(Grid(vhc2, self.obstacles))
+                    children.append(Grid(vhc2, self.obstacles, self.screen))
                 else:
                     obstacles2 = copy.deepcopy(self.obstacles)
                     obstacles2[idx] = vhc2
-                    children.append(Grid(self.redCar,obstacles2))
+                    children.append(Grid(self.redCar,obstacles2, self.screen))
                 vhc2 = None
         return children   
 
